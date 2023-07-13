@@ -16,6 +16,3 @@ export function fetchCatByBreed(breedId) {
     .then(response => response.json())
     .then(cat => cat[0]);
 }
-
-
-

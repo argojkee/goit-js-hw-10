@@ -35,7 +35,7 @@ function makeMarkupCatsList(cats) {
     },
   });
 
-  SlimSelect.data = dataSlim;
+  select.data = dataSlim;
 
   select.events = {
     beforeClose: () => {
@@ -46,7 +46,6 @@ function makeMarkupCatsList(cats) {
       startLoading();
       showLoaderIcon();
       clearCatInfoMarkup();
-      console.log(event.target);
 
       fetchCatByBreed(event.target.id)
         .then(makeMarkupSelectedCat)
@@ -133,5 +132,3 @@ function hideLoaderIcon() {
 function showLoaderIcon() {
   loaderIconEl.classList.remove('is-hidden');
 }
-
-// breedSelectEl.style.backgroundColor = 'rgba(0,0,0,0.5)';

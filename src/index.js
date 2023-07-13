@@ -10,6 +10,7 @@ const loaderIconEl = document.querySelector('.loader-icon');
 
 fetchBreeds()
   .then(makeMarkupCatsList)
+  .then(createSelectList)
   .catch(() => {
     showTextError();
     errorNotificationAnFirstLoad();
@@ -21,62 +22,13 @@ fetchBreeds()
   });
 
 function makeMarkupCatsList(cats) {
-  let dataSlim = [];
+  let dataSlimInfo = [];
 
   for (const { id, name } of cats) {
-    dataSlim.push({ text: name, id: id });
+    dataSlimInfo.push({ text: name, id: id });
   }
 
-  const select = new SlimSelect({
-    select: document.querySelector('.breed-select'),
-    data: dataSlim,
-    settings: {
-      showSearch: true,
-    },
-  });
-
-  select.data = dataSlim;
-
-  select.events = {
-    beforeClose: () => {
-      if (!event.target.classList.contains('ss-option')) {
-        return;
-      }
-      hideTextError();
-      startLoading();
-      showLoaderIcon();
-      clearCatInfoMarkup();
-
-      fetchCatByBreed(event.target.id)
-        .then(makeMarkupSelectedCat)
-        .catch(() => {
-          showTextError();
-          errorNotificationToFindCat();
-        })
-        .finally(() => {
-          endLoading();
-          hideLoaderIcon();
-        });
-    },
-    search: search => {
-      return new Promise(resolve => {
-        fetchBreeds().then(data => {
-          const options = data
-            .filter(cat => {
-              return cat.name.toLowerCase().includes(search);
-            })
-            .map(cat => {
-              return {
-                text: `${cat.name}`,
-                id: `${cat.id}`,
-              };
-            });
-
-          resolve(options);
-        });
-      });
-    },
-  };
+  return dataSlimInfo;
 }
 
 function makeMarkupSelectedCat(cat) {
@@ -131,4 +83,51 @@ function hideLoaderIcon() {
 
 function showLoaderIcon() {
   loaderIconEl.classList.remove('is-hidden');
+}
+
+function createSelectList(dataSlimInfo) {
+  const select = new SlimSelect({
+    select: document.querySelector('.breed-select'),
+    data: dataSlimInfo,
+    events: {
+      beforeClose: () => {
+        hideTextError();
+        startLoading();
+        showLoaderIcon();
+        clearCatInfoMarkup();
+
+        const selectedCat = select.getData().filter(cat => cat.selected);
+        const selectedCatId = selectedCat[0].id;
+
+        fetchCatByBreed(selectedCatId)
+          .then(makeMarkupSelectedCat)
+          .catch(() => {
+            showTextError();
+            errorNotificationToFindCat();
+          })
+          .finally(() => {
+            endLoading();
+            hideLoaderIcon();
+          });
+      },
+      search: search => {
+        return new Promise(resolve => {
+          fetchBreeds().then(data => {
+            const options = data
+              .filter(cat => {
+                return cat.name.toLowerCase().includes(search);
+              })
+              .map(cat => {
+                return {
+                  text: `${cat.name}`,
+                  id: `${cat.id}`,
+                };
+              });
+
+            resolve(options);
+          });
+        });
+      },
+    },
+  });
 }
